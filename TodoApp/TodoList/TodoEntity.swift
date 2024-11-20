@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Todo: Codable {
+struct Todo: Codable, Equatable {
     let id: Int
     var todo: String
     var body: String

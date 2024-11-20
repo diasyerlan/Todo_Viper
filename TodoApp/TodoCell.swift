@@ -97,7 +97,7 @@ class TodoCell: UITableViewCell {
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d/M/yyyy"
-        let formattedDate = dateFormatter.string(from: todo.date)
+        let formattedDate = dateFormatter.string(from: todo.date ?? Date())
         dateLabel.text = formattedDate
     }
     
