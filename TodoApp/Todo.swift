@@ -30,14 +30,14 @@ struct Todo: Codable {
         case id, todo, body, date, completed, userId
     }
     
-    init(todo: String, completed: Bool = false, userId: Int = 101, body: String = "", date: Date = Date()) {
-        self.id = Int.random(in: 1...1000)
-        self.todo = todo
-        self.completed = completed
-        self.userId = userId
-        self.body = body
-        self.date = date
-    }
+    init(id: Int = Int.random(in: 1...1000), todo: String, completed: Bool = false, userId: Int = 101, body: String = "", date: Date = Date()) {
+        self.id = id
+            self.todo = todo
+            self.completed = completed
+            self.userId = userId
+            self.body = body
+            self.date = date
+        }
 }
 
 struct TodoResponse: Codable {

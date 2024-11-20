@@ -27,6 +27,14 @@ class TodoCell: UITableViewCell {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.numberOfLines = 2
+        label.textColor = .systemGray
+        return label
+    }()
+    
+    let dateLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = .systemGray
         return label
     }()
     
@@ -45,9 +53,12 @@ class TodoCell: UITableViewCell {
         contentView.addSubview(checkButton)
         contentView.addSubview(todoTitle)
         contentView.addSubview(todoBody)
+        contentView.addSubview(dateLabel)
         
         checkButton.translatesAutoresizingMaskIntoConstraints = false
         todoTitle.translatesAutoresizingMaskIntoConstraints = false
+        todoBody.translatesAutoresizingMaskIntoConstraints = false
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             checkButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -57,9 +68,18 @@ class TodoCell: UITableViewCell {
             
             todoTitle.leadingAnchor.constraint(equalTo: checkButton.trailingAnchor, constant: 16),
             todoTitle.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            todoTitle.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            todoTitle.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             
-//            todoBody.leadingAnchor.constraint(equalTo: todoTitle.leadingAnchor),
+            todoBody.leadingAnchor.constraint(equalTo: todoTitle.leadingAnchor),
+            todoBody.trailingAnchor.constraint(equalTo: todoTitle.trailingAnchor),
+            todoBody.topAnchor.constraint(equalTo: todoTitle.bottomAnchor, constant: 4),
+            
+            dateLabel.leadingAnchor.constraint(equalTo: todoBody.leadingAnchor),
+            dateLabel.trailingAnchor.constraint(equalTo: todoBody.trailingAnchor),
+            dateLabel.topAnchor.constraint(equalTo: todoBody.bottomAnchor, constant: 4),
+            dateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+
+            
             
         ])
         
@@ -74,16 +94,23 @@ class TodoCell: UITableViewCell {
         todoTitle.text = todo.todo
         todoBody.text = todo.body
         updateUI(isCompleted: todo.completed)
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d/M/yyyy"
+        let formattedDate = dateFormatter.string(from: todo.date)
+        dateLabel.text = formattedDate
     }
     
     private func updateUI(isCompleted: Bool) {
         let icon = isCompleted ? "checkmark.circle" : "circle"
         let color: UIColor = isCompleted ? .customYellow : .systemGray
+        let bodyColor: UIColor = isCompleted ? .systemGray : .white
         checkButton.setImage(UIImage(systemName: icon), for: .normal)
         
         let attributes: [NSAttributedString.Key: Any] = isCompleted ? [.strikethroughStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: UIColor.gray] : [.strikethroughStyle: 0, .foregroundColor: UIColor.label]
         todoTitle.attributedText = NSAttributedString(string: todoTitle.text ?? "", attributes: attributes)
         checkButton.tintColor = color
+        todoBody.textColor = bodyColor
         
     }
     

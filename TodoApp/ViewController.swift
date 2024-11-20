@@ -12,6 +12,9 @@ class ViewController: UIViewController{
     let searchController = UISearchController(searchResultsController: nil)
     var tableView = UITableView()
     let toolbar = UIToolbar()
+    var isSearching: Bool {
+        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
+    }
 
     var todos: [Todo] = [] {
         didSet {
@@ -21,6 +24,8 @@ class ViewController: UIViewController{
             }
         }
     }
+    var filteredTodos: [Todo] = []
+
     
     let toolbarLabel: UILabel = {
         let label = UILabel()
@@ -117,6 +122,7 @@ class ViewController: UIViewController{
     }
     
     private func configureSearchBar() {
+        searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search"
@@ -160,30 +166,47 @@ class ViewController: UIViewController{
     }
     
     @objc private func addButtonTapped() {
-        let newTodo = Todo(todo: "New Task \(todos.count + 1)", completed: false, body: "", date: Date())
-        todos.insert(newTodo, at: 0)
-    }
-}
+        let newTodo = Todo(todo: "", completed: false, body: "", date: Date())
+        let editVC = EditTodoViewController()
+        editVC.todo = newTodo
+        editVC.delegate = self
 
-extension ViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        
+        navigationController?.pushViewController(editVC, animated: true)
     }
     
+}
+
+extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate {
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text?.lowercased(), !searchText.isEmpty else {
+            filteredTodos = []
+            tableView.reloadData()
+            return
+        }
+        filteredTodos = todos.filter { $0.todo.lowercased().contains(searchText) || $0.body.lowercased().contains(searchText) }
+        tableView.reloadData()
+    }
+
+    func willDismissSearchController(_ searchController: UISearchController) {
+        filteredTodos = []
+        tableView.reloadData()
+    }
+
     
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todos.count
+        return isSearching ? filteredTodos.count : todos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: Cells.todoCell) as? TodoCell else {
             return UITableViewCell()
         }
-        let todo = todos[indexPath.row]
-        
+        let todo = isSearching ? filteredTodos[indexPath.row] : todos[indexPath.row]
+
         cell.configure(with: todo)
         
         cell.onCheckmarkTapped  = { [weak self] in
@@ -196,6 +219,28 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let todo = todos[indexPath.row]
+        let editVC = EditTodoViewController()
+        editVC.todo = todo
+        editVC.delegate = self
+
+        navigationController?.pushViewController(editVC, animated: true)
+        
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+    }
+    
     
 }
 
+extension ViewController: EditTodoViewControllerDelegate {
+    func didUpdateTodo(_ updatedTodo: Todo) {
+        if let index = todos.firstIndex(where: { $0.id == updatedTodo.id }) {
+            todos[index] = updatedTodo
+        } else {
+            todos.insert(updatedTodo, at: 0)
+        }
+        tableView.reloadData()
+    }
+}
